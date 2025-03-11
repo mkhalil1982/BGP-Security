@@ -1,0 +1,35 @@
+interface Loopback0
+ ip address 10.1.100.1 255.255.255.255
+ ipv6 address 2001::1/128
+ ipv6 ospf 1 area 0
+
+interface GigabitEthernet0/0
+ ip address 10.1.12.1 255.255.255.0
+ ip ospf network point-to-point
+ duplex auto
+ speed auto
+ media-type rj45
+ ipv6 address 2001:DB8::12:1/64
+ ipv6 ospf 1 area 0
+ ipv6 ospf network point-to-point
+ no shutdown
+
+router ospfv3 1
+ router-id 10.1.100.1
+ address-family ipv6 unicast
+ exit-address-family
+
+router ospf 1
+ router-id 10.1.100.1
+ network 10.1.12.1 0.0.0.0 area 0
+ network 10.1.100.1 0.0.0.0 area 0
+
+router bgp 12
+ no bgp default ipv4-unicast
+ neighbor 10.1.100.2 remote-as 12
+ neighbor 10.1.100.2 update-source Loopback0
+ !
+ address-family ipv4
+  neighbor 10.1.100.2 activate
+  neighbor 10.1.100.2 send-community both
+
