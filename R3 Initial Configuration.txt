@@ -1,0 +1,29 @@
+hostname R3
+
+ipv6 unicast-routing
+
+interface Loopback0
+ ip address 10.1.100.3 255.255.255.255
+ ipv6 address 2001::3/128
+
+interface GigabitEthernet1
+ ip address 10.1.23.3 255.255.255.0
+ ipv6 address 2001:DB8:0:23::3/64
+ no shutdown
+
+router bgp 30
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 10.1.23.2 remote-as 12
+ neighbor 2001:DB8:0:23::2 remote-as 12
+ !
+ address-family ipv4
+  network 10.1.100.3 mask 255.255.255.255
+  neighbor 10.1.23.2 activate
+  neighbor 10.1.23.2 send-community both
+ exit-address-family
+
+ address-family ipv6
+  network 2001::3/128
+  neighbor 2001:DB8:0:23::2 activate
+ exit-address-family
