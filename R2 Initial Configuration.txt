@@ -1,0 +1,57 @@
+hostname XR2
+
+interface Loopback0
+ ipv4 address 10.1.100.2 255.255.255.255
+ ipv6 address 2001::2/128
+
+interface GigabitEthernet0/0/0/0
+ ipv4 address 10.1.12.2 255.255.255.0
+ ipv6 address 2001:db8:0:12::2/64
+
+interface GigabitEthernet0/0/0/1
+ ipv4 address 10.1.23.2 255.255.255.0
+ ipv6 address 2001:db8:0:23::2/64
+
+route-policy PASS
+  pass
+end-policy
+
+router ospf 1
+ router-id 10.1.100.2
+ area 0
+  interface Loopback0
+
+  interface GigabitEthernet0/0/0/0
+   network point-to-point
+
+router ospfv3 1
+ router-id 10.1.100.2
+ area 0
+  interface Loopback0
+
+  interface GigabitEthernet0/0/0/0
+   network point-to-point
+
+router bgp 12
+ address-family ipv4 unicast
+
+ address-family ipv6 unicast
+  network 2001::2/128
+ 
+ neighbor 10.1.23.3
+   remote-as 30
+  address-family ipv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+
+ neighbor 10.1.100.1
+  remote-as 12
+  update-source Loopback0
+  address-family ipv4 unicast
+   next-hop-self
+
+ neighbor 2001:db8:0:23::3
+  remote-as 30
+  address-family ipv6 unicast
+   route-policy PASS in
+   route-policy PASS out
