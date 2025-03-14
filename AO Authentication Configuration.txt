@@ -1,0 +1,160 @@
+RP/0/RP0/CPU0:XR2(config)#key chain BGP_SEC
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#?
+  accept-tolerance    Configure a tolerance value for accept keys of this keycha
+in
+  apply-group         Apply configuration from a group
+  apply-group-append  Append apply-group configuration from a group
+  apply-group-remove  Remove a group from apply-group configuration
+  clear               Clear the uncommitted configuration
+  commit              Commit the configuration changes via pseudo-atomic operati
+on
+  describe            Describe a command without taking real actions
+  do                  Run an exec command
+  end                 Exit from configure mode
+  exclude-group       Exclude apply-group configuration from a group
+  exclude-item        Negate a command or set its defaults
+  exit                Exit from this submode
+  key                 Configure a Key
+  macsec              Configures as macsec key chain
+  no                  Negate a command or set its defaults
+  pwd                 Commands used to reach current submode
+  root                Exit to the global configuration mode
+  show                Show contents of configuration
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key ?
+  WORD  Enter 48-bit integer [0 - 281474976710655]
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key 1 ?
+  accept-lifetime          Configure accept lifetime
+  cryptographic-algorithm  Choose cryptographic algorithm
+  key-string               Configure a key value
+  send-lifetime            Configure send lifetime
+  <cr>
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key 1 key-string ?
+  LINE       Cleartext key
+  clear      Enter key string in cleartext form
+  password   Encrypted key string (even number of characters with
+             first two as digits and sum less than 53, and rest
+             of the characters should be hex digits)
+  password6  Enter encrypted CAK as hex string
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key 1 key-string cisco ?
+LINE
+  <cr>
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key 1 key-string cisco
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key ?
+  WORD  Enter 48-bit integer [0 - 281474976710655]
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key 1 ?
+  accept-lifetime          Configure accept lifetime
+  cryptographic-algorithm  Choose cryptographic algorithm
+  key-string               Configure a key value
+  send-lifetime            Configure send lifetime
+  <cr>
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key 1 cryptographic-algorithm ?
+  AES-128-CMAC-96  Configure AES-128-CMAC-96 as cryptographic algorithm
+  HMAC-MD5         Configure HMAC-MD5 as cryptographic algorithm
+  HMAC-SHA-256     Configure HMAC-SHA-256 as cryptographic algorithm
+  HMAC-SHA1-12     Configure HMAC-SHA1-12 as cryptographic algorithm
+  HMAC-SHA1-20     Configure HMAC-SHA1-20 as cryptographic algorithm
+  HMAC-SHA1-96     Configure HMAC-SHA1-96 as cryptographic algorithm
+  MD5              Configure MD5 as cryptographic algorithm
+  SHA-1            Configure SHA-1-20 as cryptographic algorithm
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)#key 1 cryptographic-algorithm
+
+RP/0/RP0/CPU0:XR2(config)#router bgp 12
+RP/0/RP0/CPU0:XR2(config-bgp)# neighbor 10.1.23.3
+RP/0/RP0/CPU0:XR2(config-bgp-nbr)#no password encrypted 112A1016141D5A5E57
+RP/0/RP0/CPU0:XR2(config-bgp-nbr)#keychain BGP_SEC
+
+RP/0/RP0/CPU0:XR2#RP/0/RP0/CPU0:Mar 13 10:32:28.925 UTC: tcp[236]: %IP-TCP-3-EAOPT_SEND_NOKEY : No active send-key for key-chain 'BGP_SEC' for the Enhanced Authentication option to send to peer 10.1.23.3, error - 0xa4eb1600
+
+%BGP: Key chain is not type TCP
+
+R3(config)#no key chain BGP_KEY
+R3(config)#key chain BGP_KEY tcp
+R3(config-keychain-tcp)# key 1
+R3(config-keychain-tcp-key)#key-string cisco
+R3(config-keychain-tcp-key)#cryptographic-algorithm ?
+  aes-128-cmac  AES-128-CMAC authentication algorithm
+  hmac-sha-1    HMAC-SHA-1 authentication algorithm
+  hmac-sha-256  HMAC-SHA-256 authentication algorithm
+
+Running configuration (IOS XR to IOS XE)
+
+R3(config)#key chain BGP_KEY tcp
+R3(config-keychain-tcp)# key 1
+R3(config-keychain-tcp-key)#send-id 0
+R3(config-keychain-tcp-key)#recv-id 0
+R3(config-keychain-tcp-key)#include-tcp-options
+R3(config-keychain-tcp-key)#cryptographic-algorithm hmac-sha-1
+R3(config-keychain-tcp-key)#key-string cisco
+R3(config-keychain-tcp-key)#accept-lifetime 11:25:00 Mar 13 2025 infinite
+R3(config-keychain-tcp-key)#send-lifetime 11:25:00 Mar 13 2025 infinite
+
+R3(config)#router bgp 30
+R3(config-router)# bgp log-neighbor-changes
+R3(config-router)# neighbor 10.1.23.2 ao BGP_KEY include-tcp-options accept-ao-mismatch-connections
+
+RP/0/RP0/CPU0:XR2(config)#key chain BGP_KEY
+RP/0/RP0/CPU0:XR2(config-BGP_SEC)# key 1
+RP/0/RP0/CPU0:XR2(config-BGP_SEC-1)#accept-lifetime 11:25:00 march 13 2025 infinite
+RP/0/RP0/CPU0:XR2(config-BGP_SEC-1)#key-string password 1511021F0725
+RP/0/RP0/CPU0:XR2(config-BGP_SEC-1)#send-lifetime 11:25:00 march 13 2025 infinite
+RP/0/RP0/CPU0:XR2(config-BGP_SEC-1)#cryptographic-algorithm HMAC-SHA1-96
+
+RP/0/RP0/CPU0:XR2(config)#router bgp 12
+RP/0/RP0/CPU0:XR2(config-bgp)# neighbor 10.1.23.3
+RP/0/RP0/CPU0:XR2(config-bgp-nbr)#ao BGP_SEC include-tcp-options enable
+
+R3#show key chain BGP_KEY
+Key-chain BGP_KEY:
+    TCP key chain
+    Preferred MKT id - 1
+    key 1 -- text "cisco"
+        cryptographic-algorithm: hmac-sha-1
+        accept lifetime (11:25:00 UTC Mar 13 2025) - (infinite) [valid now]
+        send lifetime (11:25:00 UTC Mar 13 2025) - (infinite) [valid now]
+        send-id - 0
+        recv-id - 0
+        include-tcp-options
+        MKT ready - true
+        MKT preferred - true
+        MKT in-use - true
+        MKT id - 1
+        MKT send-id - 0
+        MKT recv-id - 0
+        MKT alive (send) - true
+        MKT alive (recv) - true
+        MKT include TCP options - true
+        MKT accept AO mismatch - false
+            TCB - 0x7FB7FB128FD8
+            curr key - 1
+            next key - 1
+
+R3#show bgp ipv4 unicast neighbors 10.1.23.2 | include AO
+  AO keychain BGP_KEY include-tcp-options accept-ao-mismatch-connections
+Option Flags: nagle, path mtu capable, TCP AO
+TCP AO Key chain: BGP_KEY
+TCP AO Current Key:
+ Accept AO Mismatch: Yes
+TCP AO Next Key:
+ Accept AO Mismatch: Yes
+
+RP/0/RP0/CPU0:XR2#show tcp brief | include 10.1.23.3
+Fri Mar 14 23:29:38.988 UTC
+0x00007f2998012478 0x60000000      0      0  10.1.23.2:179          10.1.23.3:22302        ESTAB
+
+RP/0/RP0/CPU0:XR2#show tcp detail pcb 0x00007f2998012478 | begin Auth
+Fri Mar 14 23:30:18.108 UTC
+Authentication peer details:
+    Peer: 10.1.23.3/32, OBJ_ID: 0x40002fa0
+    Port: BGP, vrf_id: 0x60000000, type: AO, debug_on:0
+    Keychain_name: BGP_SEC, options: 0x00000001, linked peer: 0x7f2998016fa8
+    Send_SNE: 0, Receive_SNE: 0, Send_SNE_flag: 0
+    Recv_SNE_flag: 0, Prev_send_seq: 3445474808, Prev_receive_seq: 2718628837
+    ISS: 3445474329, IRS: 2718628264
+    Current key: 1
+    Traffic keys: send_non_SYN: 00b0b349, recv_non_SYN: 00000000
+    RNext key: 1
+    Traffic keys: send_non_SYN: 00000000, recv_non_SYN: 00000000
+    Last 1 keys used:
+        key: 1, time: Mar 14 23:10:23.378.091, reason: Peer requested rollover
+
+

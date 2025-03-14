@@ -1,0 +1,77 @@
+RP/0/RP0/CPU0:XR2(config)#router bgp 12
+RP/0/RP0/CPU0:XR2(config-bgp)#neighbor 10.1.23.3
+RP/0/RP0/CPU0:XR2(config-bgp-nbr)#password ?
+  clear                Specifies an UNENCRYPTED password will follow
+  encrypted            Specifies an ENCRYPTED password will follow
+  inheritance-disable  Prevent password from being inherited from parent
+
+RP/0/RP0/CPU0:XR2(config-bgp-nbr)#password clear ?
+  LINE  The UNENCRYPTED (cleartext) neighbor password
+RP/0/RP0/CPU0:XR2(config-bgp-nbr)#password clear Cisco123
+
+router bgp 12
+ address-family ipv4 unicast
+ !
+ address-family ipv6 unicast
+  network 2001::2/128
+ !
+ neighbor 10.1.23.3
+  remote-as 30
+  password encrypted 112A1016141D5A5E57
+  address-family ipv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+
+R3#show tcp brief
+TCB       Local Address               Foreign Address             (state)
+7FB867D6FA28  10.1.23.3.37725            10.1.23.2.179               CLOSED
+7FB867ED9C90  10.1.23.3.179              10.1.23.2.32090             SYNRCVD
+7FB7FB0AED60  2001:DB8:0:23::3.42122     2001:DB8:0:23::2.179        ESTAB
+
+RP/0/RP0/CPU0:Mar 12 06:40:00.047 UTC: tcp[236]: %IP-TCP-3-BADAUTH : Invalid MD5 digest from 10.1.23.3:23238 to 10.1.23.2:179 for vrf:default (0x60000000)
+
+R3(config)#router bgp 30
+R3(config-router)#neighbor 10.1.23.2 password ?
+  <0-7>  Encryption type (0 to disable encryption, 7 for proprietary)
+  LINE   The password
+
+R3(config-router)#neighbor 10.1.23.2 password Cisco123
+R3(config-router)#end
+
+R3# *Mar 13 10:12:24.568: %BGP-5-ADJCHANGE: neighbor 10.1.23.2 Up
+
+RP/0/RP0/CPU0:XR2#show tcp brief
+Thu Mar 13 10:17:32.071 UTC
+   PCB             VRF-ID     Recv-Q Send-Q Local Address          Foreign Address        State
+0x00007f2998008618 0x60000000      0      0  2001:db8:0:23::2:179   2001:db8:0:23::3:42122 ESTAB
+0x00007f2970015428 0x60000000      0      0  :::179                 :::0                   LISTEN
+0x00007f29700106a8 0x00000000      0      0  :::179                 :::0                   LISTEN
+0x00007f299800db18 0x60000000      0      0  10.1.100.2:179         10.1.100.1:60245       ESTAB
+0x00007f2998012478 0x60000000      0      0  10.1.23.2:179          10.1.23.3:45702        ESTAB
+0x00007f297000ff58 0x60000000      0      0  0.0.0.0:179            0.0.0.0:0              LISTEN
+0x00007f2970008fe8 0x00000000      0      0  0.0.0.0:179            0.0.0.0:0              LISTEN
+0x00007f29700034b8 0x00000000      0      0  0.0.0.0:0              0.0.0.0:0              CLOSED
+
+RP/0/RP0/CPU0:XR2#show tcp detail pcb 0x00007f2998012478 | utility egrep "auth|MD5|peer"
+Feature flags: MD5, Nagle
+Datagrams (in bytes): MSS 1460, peer MSS 1460, min MSS 1460, max MSS 1460
+Num of peers with authentication info: 1
+Authentication peer details:
+    Port: BGP, vrf_id: 0x60000000, type: MD5, debug_on:0
+
+R3#show bgp ipv4 unicast neighbors 10.1.23.2 | include md5
+Option Flags: nagle, path mtu capable, md5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
