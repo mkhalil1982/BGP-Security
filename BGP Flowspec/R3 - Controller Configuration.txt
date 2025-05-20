@@ -1,0 +1,12 @@
+RP/0/0/CPU0:RR_R3(config)#class-map type traffic match-all FS_RULE
+RP/0/0/CPU0:RR_R3(config-cmap)#match source-address ipv4 192.168.1.0/24
+RP/0/0/CPU0:RR_R3(config-cmap)#match destination-address ipv4 192.168.5.0/24
+
+RP/0/0/CPU0:RR_R3(config)#policy-map type pbr FS_POLICY_MAP
+RP/0/0/CPU0:RR_R3(config-pmap)#class FS_RULE
+RP/0/0/CPU0:RR_R3(config-pmap-c)#drop
+
+RP/0/0/CPU0:RR_R3(config)#flowspec
+RP/0/0/CPU0:RR_R3(config-flowspec)#address-family ipv4
+RP/0/0/CPU0:RR_R3(config-flowspec-af)#service-policy type pbr FS_POLICY_MAP
+RP/0/0/CPU0:RR_R3(config)# commit

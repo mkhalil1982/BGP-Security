@@ -1,0 +1,62 @@
+hostname R3
+
+class-map type traffic match-all FS_RULE
+ match source-address ipv4 192.168.1.0 255.255.255.0
+ match destination-address ipv4 192.168.5.0 255.255.255.0
+ end-class-map
+
+policy-map type pbr FS_POLICY_MAP
+ class type traffic FS_RULE
+  drop
+
+ class type traffic class-default
+
+ end-policy-map
+
+interface Loopback0
+ ipv4 address 10.1.100.3 255.255.255.255
+
+interface GigabitEthernet0/0/0/0
+ ipv4 address 10.1.23.3 255.255.255.0
+
+interface GigabitEthernet0/0/0/1
+ ipv4 address 10.1.34.3 255.255.255.0
+
+router ospf 1
+ router-id 10.1.100.3
+ area 0
+  interface Loopback0
+
+  interface GigabitEthernet0/0/0/0
+   network point-to-point
+
+  interface GigabitEthernet0/0/0/1
+   network point-to-point
+
+
+router bgp 100
+ address-family ipv4 unicast
+
+ address-family ipv4 flowspec
+
+ neighbor 10.1.100.2
+  remote-as 100
+  update-source Loopback0
+  address-family ipv4 unicast
+   route-reflector-client
+
+  address-family ipv4 flowspec
+   route-reflector-client
+
+ neighbor 10.1.100.4
+  remote-as 100
+  update-source Loopback0
+  address-family ipv4 unicast
+   route-reflector-client
+
+  address-family ipv4 flowspec
+   route-reflector-client
+
+flowspec
+ address-family ipv4
+  service-policy type pbr FS_POLICY_MAP
