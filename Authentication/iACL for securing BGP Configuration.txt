@@ -1,0 +1,36 @@
+IOS XE:
+
+R3#show tcp brief | include 10.1.23.3
+7FB867F1E108  10.1.23.3.37279            10.1.23.2.179               ESTAB
+
+R3(config)#ip access-list extended BGP_PROTECT
+R3(config-ext-nacl)#5 deny tcp host 10.1.23.2 host 10.1.23.3 eq 179 log
+R3(config-ext-nacl)#6 deny tcp host 10.1.23.2 eq 179 host 10.1.23.3 log
+R3(config-ext-nacl)#7 permit ip any any
+
+R3(config-ext-nacl)#interface GigabitEthernet1
+R3(config-if)#ip access-group BGP_PROTECT in
+
+IOS XR:
+
+RP/0/RP0/CPU0:XR2(config)#ipv4 access-list BGP_PROTECT
+RP/0/RP0/CPU0:XR2(config-ipv4-acl)#5 deny tcp host 10.1.23.3 host 10.1.23.2 eq bgp log
+RP/0/RP0/CPU0:XR2(config-ipv4-acl)#6 deny tcp host 10.1.23.3 eq bgp host 10.1.23.2 log
+RP/0/RP0/CPU0:XR2(config-ipv4-acl)#7 permit ipv4 any any
+
+RP/0/RP0/CPU0:XR2#show tcp brief | include 10.1.23.2
+Sun Mar 16 09:36:46.755 UTC
+0x00007f299800cc88 0x60000000      0      0  10.1.23.2:179          10.1.23.3:41933        ESTAB
+
+RP/0/RP0/CPU0:XR2(config)#ipv4 access-list BGP_PROTECT
+RP/0/RP0/CPU0:XR2(config-ipv4-acl)# 5 deny tcp host 10.1.23.3 host 10.1.23.2 e$
+RP/0/RP0/CPU0:XR2(config-ipv4-acl)# 6 deny tcp host 10.1.23.3 eq bgp host 10.1$
+RP/0/RP0/CPU0:XR2(config-ipv4-acl)# 7 permit ipv4 any any
+
+RP/0/RP0/CPU0:XR2(config)#interface GigabitEthernet0/0/0/1
+RP/0/RP0/CPU0:XR2(config-if)#ipv4 access-group BGP_PROTECT ingress
+
+
+
+
+
