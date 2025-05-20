@@ -1,0 +1,168 @@
+R1#ping 192.168.5.5 source lo1
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.5.5, timeout is 2 seconds:
+Packet sent with a source address of 192.168.1.1
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 3/8/32 ms
+
+RP/0/RP0/CPU0:R3#show bgp ipv4 flowspec summary
+Tue May 20 19:31:38.170 UTC
+BGP router identifier 10.1.100.3, local AS number 100
+BGP generic scan interval 60 secs
+Non-stop routing is enabled
+BGP table state: Active
+Table ID: 0x0   RD version: 4
+BGP main routing table version 4
+BGP NSR Initial initsync version 0 (Reached)
+BGP NSR/ISSU Sync-Group versions 0/0
+BGP scan interval 60 secs
+
+BGP is operating in STANDALONE mode.
+
+
+Process       RcvTblVer   bRIB/RIB   LabelVer  ImportVer  SendTblVer  StandbyVer
+Speaker               4          4          4          4           4           0
+
+Neighbor        Spk    AS MsgRcvd MsgSent   TblVer  InQ OutQ  Up/Down  St/PfxRcd
+10.1.100.2        0   100     718     653        4    0    0 10:08:36          0
+10.1.100.4        0   100     715     649        4    0    0 10:07:48          0
+
+RP/0/RP0/CPU0:R3#show bgp ipv4 unicast
+Tue May 20 19:31:52.837 UTC
+BGP router identifier 10.1.100.3, local AS number 100
+BGP generic scan interval 60 secs
+Non-stop routing is enabled
+BGP table state: Active
+Table ID: 0xe0000000   RD version: 3
+BGP main routing table version 3
+BGP NSR Initial initsync version 1 (Reached)
+BGP NSR/ISSU Sync-Group versions 0/0
+BGP scan interval 60 secs
+
+Status codes: s suppressed, d damped, h history, * valid, > best
+              i - internal, r RIB-failure, S stale, N Nexthop-discard
+Origin codes: i - IGP, e - EGP, ? - incomplete
+   Network            Next Hop            Metric LocPrf Weight Path
+*>i192.168.1.0/24     10.1.100.2               0    100      0 i
+*>i192.168.5.0/24     10.1.100.4               0    100      0 i
+
+Processed 2 prefixes, 2 paths
+
+RP/0/RP0/CPU0:R3#show bgp ipv4 flowspec
+Tue May 20 19:35:34.163 UTC
+BGP router identifier 10.1.100.3, local AS number 100
+BGP generic scan interval 60 secs
+Non-stop routing is enabled
+BGP table state: Active
+Table ID: 0x0   RD version: 5
+BGP main routing table version 5
+BGP NSR Initial initsync version 0 (Reached)
+BGP NSR/ISSU Sync-Group versions 0/0
+BGP scan interval 60 secs
+
+Status codes: s suppressed, d damped, h history, * valid, > best
+              i - internal, r RIB-failure, S stale, N Nexthop-discard
+Origin codes: i - IGP, e - EGP, ? - incomplete
+   Network            Next Hop            Metric LocPrf Weight Path
+*> Dest:192.168.5.0/24,Source:192.168.1.0/24/80
+                      0.0.0.0                                0 i
+
+Processed 1 prefixes, 1 paths
+
+R2#show bgp ipv4 flowspec summary
+BGP router identifier 10.1.100.2, local AS number 100
+BGP table version is 4, main routing table version 4
+1 network entries using 8400 bytes of memory
+1 path entries using 124 bytes of memory
+1/1 BGP path/bestpath attribute entries using 288 bytes of memory
+1 BGP rrinfo entries using 40 bytes of memory
+1 BGP extended community entries using 24 bytes of memory
+0 BGP route-map cache entries using 0 bytes of memory
+0 BGP filter-list cache entries using 0 bytes of memory
+BGP using 8876 total bytes of memory
+BGP activity 12/9 prefixes, 12/9 paths, scan interval 60 secs
+1 networks peaked at 09:45:34 May 20 2025 UTC (09:50:46.332 ago)
+
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.1.100.3      4          100     622     682        4    0    0 10:13:25        1
+
+R2#show bgp ipv4 flowspec
+BGP table version is 4, local router ID is 10.1.100.2
+Status codes: s suppressed, d damped, h history, * valid, > best, i - internal,
+              r RIB-failure, S Stale, m multipath, b backup-path, f RT-Filter,
+              x best-external, a additional-path, c RIB-compressed,
+              t secondary path, L long-lived-stale,
+Origin codes: i - IGP, e - EGP, ? - incomplete
+RPKI validation codes: V valid, I invalid, N Not found
+
+     Network          Next Hop            Metric LocPrf Weight Path
+ *>i  Dest:192.168.5.0/24,Source:192.168.1.0/24
+                      0.0.0.0                       100      0 i
+RP/0/RP0/CPU0:R3#show flowspec ipv4 nlri detail
+Tue May 20 19:37:28.122 UTC
+
+AFI: IPv4
+  NLRI (hex)     :0x0118c0a8050218c0a801
+    Actions      :Traffic-rate: 0 bps  (policy.1.FS_POLICY_MAP.FS_RULE)
+
+RP/0/RP0/CPU0:R3#show flowspec ipv4 nlri internal
+Tue May 20 19:37:56.087 UTC
+
+AFI: IPv4
+  NLRI (hex)     :0x0118c0a8050218c0a801
+    Actions      :Traffic-rate: 0 bps  (policy.1.FS_POLICY_MAP.FS_RULE)
+      Client Version: 0
+      Local:          FALSE
+      Unsupported:    FALSE
+      RT:
+        VRF Name Cfg:   0x00
+        RT Cfg:         0x00
+        RT Registered:  0x00
+        RT Resolved:    0x00
+    Class handles:
+    Class Handle Version:     0
+    Sequence:                 1024
+    Match Unsupported:        None
+    Synced:                   FALSE
+    Ref Count:                1
+    Last Error:               0:Success
+    Last Batch:               0
+    Time Init:                May 20 19:35:22
+    Time iClass Update:
+
+R2#show flowspec ipv4 nlri detail
+AFI: IPv4
+  NLRI (hex)     :0x0118C0A8050218C0A801
+    Actions      :Traffic-rate: 0 bps  (bgp.1)
+    Statistics                        (packets/bytes)
+      Matched             :                   0/0
+      Dropped             :                   0/0
+
+RP/0/RP0/CPU0:R3#show flowspec client
+Tue May 20 19:38:55.667 UTC
+Client: bgp.1
+  State: Connected
+  Flows: 0
+Client: policy.1
+  State: Connected
+  Flows: 1
+
+After applying the flowspec configuration and association:
+
+R1#ping 192.168.5.5 source lo1
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.5.5, timeout is 2 seconds:
+Packet sent with a source address of 192.168.1.1
+.....
+Success rate is 0 percent (0/5)
+
+
+R2#show flowspec ipv4 detail
+AFI: IPv4
+  Flow           :Dest:192.168.5.0/24,Source:192.168.1.0/24
+    Actions      :Traffic-rate: 0 bps  (bgp.1)
+    Statistics                        (packets/bytes)
+      Matched             :                   5/570
+      Dropped             :                   5/570
+
+
