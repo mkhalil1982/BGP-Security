@@ -1,0 +1,31 @@
+R1#clear ip bgp * soft
+01:01:25.744: %BGP-6-MSGDUMP_LIMIT: unsupported or mal-formatted message received from 10.1.12.2:
+FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF 004A 0200 0000 2F40 0101 0040 021A 0206
+0000 00C8 0000 00C8 0000 00C8 0000 00C8 0000 00C8 0000 00C8 4003 040A 010C 0280
+0404 0000 0000 18C0 A802
+%BGP-6-ASPATH: Long AS path 200 200 200 200 200 200 received from 10.1.12.2: BGP(0) Prefixes: 192.168.2.0/24
+
+R1(config)#router bgp 100
+  <1-254>  Number of ASes in the AS-PATH attribute(max 254)
+R1(config-router)#bgp maxas-limit 3
+
+route-policy PREPEND
+  if destination in LOOP1 then
+    prepend as-path 200 5
+  else
+    pass
+  endif
+end-policy
+
+
+prefix-set LOOP1
+  192.168.2.0/24
+end-set
+
+router bgp 200
+ address-family ipv4 unicast
+  network 192.168.2.0/24
+ neighbor 10.1.12.1
+  remote-as 100
+  address-family ipv4 unicast
+   route-policy PREPEND out
