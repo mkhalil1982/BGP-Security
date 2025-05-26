@@ -1,0 +1,102 @@
+Strict:
+
+R1#show ip route static
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2
+       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2
+       ia - IS-IS inter area, * - candidate default, U - per-user static route
+       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP
+       a - application route
+       + - replicated route, % - next hop override, p - overrides from PfR
+
+Gateway of last resort is not set
+
+      10.0.0.0/8 is variably subnetted, 5 subnets, 2 masks
+S        10.1.100.2/32 [1/0] via 10.1.12.2
+
+R1#show ip cef 10.1.100.2
+10.1.100.2/32
+  nexthop 10.1.12.2 GigabitEthernet0/0
+
+R1(config)#interface gigabitEthernet 0/0
+R1(config-if)#ip verify unicast source reachable-via rx
+
+R1(config)#interface gigabitEthernet 0/1
+R1(config-if)#ip verify unicast source reachable-via rx
+
+R1#show ip interface gigabitEthernet 0/0 | include verify
+  IP verify source reachable-via RX
+
+R1#show ip interface gigabitEthernet 0/1 | include verify
+  IP verify source reachable-via RX
+
+R2#ping 10.1.12.1 source loopback 0
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.1.12.1, timeout is 2 seconds:
+Packet sent with a source address of 10.1.100.2
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 ms
+
+R3(config)#int loopback 0
+R3(config-if)#ip address 10.1.100.2 255.255.255.255
+
+R3#ping 10.1.13.1 source loopback 0
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.1.13.1, timeout is 2 seconds:
+Packet sent with a source address of 10.1.100.2
+.....
+Success rate is 0 percent (0/5)
+
+R1#show ip interface gigabitEthernet 0/0 | include drops
+   0 verification drops
+   0 suppressed verification drops
+
+R1#sh ip int g0/1 | inc drops
+   5 verification drops
+   0 suppressed verification drops
+
+R1#debug ip cef drops rpf
+IP CEF drops for RPF debugging is on
+R1#
+*May 26 10:40:18.023: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 10:40:20.022: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 10:40:22.022: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 10:40:24.022: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 10:40:26.022: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+
+Loose:
+
+R1(config)#int interface GigabitEthernet0/0
+R1(config-if)#ip verify unicast source reachable-via any
+
+R1(config)#int interface GigabitEthernet0/1
+R1(config-if)#ip verify unicast source reachable-via any
+
+R1#show ip interface GigabitEthernet0/0 | include verify
+  IP verify source reachable-via ANY
+R1#show ip interface GigabitEthernet0/1 | include verify
+  IP verify source reachable-via ANY
+
+R1#
+*May 26 12:21:13.751: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 12:21:13.751: CEF-Drop-Suppress: Packet from 10.1.100.2 via GigabitEthernet0/1 -- ip verify check (via-any)
+*May 26 12:21:15.750: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 12:21:15.750: CEF-Drop-Suppress: Packet from 10.1.100.2 via GigabitEthernet0/1 -- ip verify check (via-any)
+*May 26 12:21:17.750: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 12:21:17.750: CEF-Drop-Suppress: Packet from 10.1.100.2 via GigabitEthernet0/1 -- ip verify check (via-any)
+*May 26 12:21:19.750: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 12:21:19.750: CEF-Drop-Suppress: Packet from 10.1.100.2 via GigabitEthernet0/1 -- ip verify check (via-any)
+*May 26 12:21:21.750: CEF-Drop: Packet from 10.1.100.2 via GigabitEthernet0/1 -- via-rx
+*May 26 12:21:21.750: CEF-Drop-Suppress: Packet from 10.1.100.2 via GigabitEthernet0/1 -- ip verify check (via-any)
+
+show ip interface GigabitEthernet0/0 | inc drops
+   0 verification drops
+   0 suppressed verification drops
+R1#show ip int GigabitEthernet0/1 | inc drops
+   0 verification drops
+   5 suppressed verification drops
+
+
+
