@@ -1,0 +1,32 @@
+R1#show bgp ipv4 unicast neighbors 10.1.12.2 | include TTL
+Connection is ECN Disabled, Mininum incoming TTL 0, Outgoing TTL 1
+
+RP/0/RP0/CPU0:R2#show bgp ipv4 unicast neighbors 10.1.12.1 | include TTL
+Tue May 27 07:50:04.778 UTC
+
+R1(config)#router bgp 100
+R1(config-router)#neighbor 10.1.12.2 ttl-security hops ?
+  <1-254>  maximum number of hops
+R1(config-router)#neighbor 10.1.12.2 ttl-security hops 254
+
+R1#show bgp ipv4 unicast neighbors 10.1.12.2 | include TTL
+Connection is ECN Disabled, Mininum incoming TTL 1, Outgoing TTL 255
+
+R1(config-router)#neighbor 10.1.12.2 ebgp-multihop 2
+Remove ttl-security before configuring ebgp-multihop
+R1(config-router)#no neighbor 10.1.12.2 ttl-security hops 254
+R1(config-router)#neighbor 10.1.12.2 ebgp-multihop 2
+
+R1#show bgp ipv4 unicast neighbors 10.1.12.2 | include TTL
+Connection is ECN Disabled, Mininum incoming TTL 0, Outgoing TTL 2
+
+
+RP/0/RP0/CPU0:R2(config)#router bgp 200
+RP/0/RP0/CPU0:R2(config-bgp)#neighbor 10.1.12.1
+RP/0/RP0/CPU0:R2(config-bgp-nbr)#ttl-security
+
+RP/0/RP0/CPU0:R2#show bgp ipv4 unicast neighbors 10.1.12.1 | include TTL
+  TTL security is configured
+
+
+
