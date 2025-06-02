@@ -1,0 +1,31 @@
+interface Loopback1
+ ip address 192.168.1.1 255.255.255.0
+
+interface GigabitEthernet0/0
+ ip address 10.1.12.1 255.255.255.0
+
+router bgp 100
+ no bgp default ipv4-unicast
+ neighbor 10.1.12.2 remote-as 234
+ address-family ipv4
+  network 192.168.1.0
+  neighbor 10.1.12.2 activate
+ exit-address-family
+
+ip access-list extended BGP-CONTROL
+ permit tcp any any eq bgp
+ permit tcp any eq bgp any
+
+ip access-list extended BGP-CONTROL
+ permit tcp any any eq bgp
+ permit tcp any eq bgp any
+
+class-map match-any BGP-ACL
+ match access-group name BGP-CONTROL
+
+policy-map CONTROL-PLANE-POLICY
+ class BGP-ACL
+  drop
+
+control-plane
+ service-policy input CONTROL-PLANE-POLICY
