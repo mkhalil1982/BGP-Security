@@ -1,0 +1,109 @@
+R1:
+interface Loopback1
+ ip address 192.168.1.1 255.255.255.0
+
+router bgp 1
+ no bgp default ipv4-unicast
+ neighbor 10.1.12.2 remote-as 2
+ address-family ipv4
+  network 192.168.1.0
+  neighbor 10.1.12.2 activate
+
+R2:
+
+router bgp 234
+ no bgp default ipv4-unicast
+ neighbor 10.1.12.1 remote-as 100
+ neighbor 10.1.100.3 remote-as 234
+ neighbor 10.1.100.3 update-source Loopback0
+ neighbor 10.1.100.4 remote-as 234
+ neighbor 10.1.100.4 update-source Loopback0
+ address-family ipv4
+  neighbor 10.1.12.1 activate
+  neighbor 10.1.100.3 activate
+  neighbor 10.1.100.3 next-hop-self
+  neighbor 10.1.100.4 activate
+
+ip route 192.0.2.1 255.255.255.255 Null0
+
+R3:
+
+router bgp 234
+ no bgp default ipv4-unicast
+ neighbor 10.1.100.2 remote-as 234
+ neighbor 10.1.100.2 update-source Loopback0
+ neighbor 10.1.100.4 remote-as 234
+ neighbor 10.1.100.4 update-source Loopback0
+ address-family ipv4
+  network 192.168.3.0
+  neighbor 10.1.100.2 activate
+  neighbor 10.1.100.4 activate
+
+
+R4-Trigger:
+route-map MAP permit 10
+ match tag 100
+ set local-preference 200
+ set origin igp
+ set community no-export
+ set ip next-hop 192.0.2.1
+
+ip route 192.0.2.1 255.255.255.255 Null0
+
+router bgp 234
+ no bgp default ipv4-unicast
+ neighbor 10.1.100.2 remote-as 234
+ neighbor 10.1.100.2 update-source Loopback0
+ neighbor 10.1.100.3 remote-as 234
+ neighbor 10.1.100.3 update-source Loopback0
+ address-family ipv4
+  redistribute static route-map MAP
+  neighbor 10.1.100.2 activate
+  neighbor 10.1.100.3 activate
+
+R1#ping 192.168.3.3 source lo1 repeat 100000
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!U.U.U.U.U.U.
+
+R4-Trigger(config)#ip route 192.168.3.0 255.255.255.0 Null0 tag 100
+
+R2#debug ip bgp updates
+*May 27 12:44:13.160: BGP(0): 10.1.100.4 rcvd UPDATE w/ attr: nexthop 192.0.2.1, origin i, localpref 200, metric 0
+*May 27 12:44:13.160: BGP(0): 10.1.100.4 rcvd 192.168.3.0/24
+*May 27 12:44:13.160: BGP(0): Revise route installing 1 of 1 routes for 192.168.3.0/24 -> 192.0.2.1(global) to main IP table
+*May 27 12:44:13.161: BGP(0): (base) 10.1.12.1 send UPDATE (format) 192.168.3.0/24, next 10.1.12.2, metric 0, path Local
+
+R2#show bgp ipv4 unicast 192.168.3.0 255.255.255.0
+BGP routing table entry for 192.168.3.0/24, version 5
+Paths: (2 available, best #1, table default)
+  Advertised to update-groups:
+     10
+  Refresh Epoch 2
+  Local
+    192.0.2.1 from 10.1.100.4 (10.1.100.4)
+      Origin IGP, metric 0, localpref 200, valid, internal, best
+      rx pathid: 0, tx pathid: 0x0
+  Refresh Epoch 2
+  Local
+    10.1.100.3 (metric 2) from 10.1.100.3 (192.168.3.3)
+      Origin IGP, metric 0, localpref 100, valid, internal
+      rx pathid: 0, tx pathid: 0
+
+
+ip route 192.168.1.0 255.255.255.0 Null0 tag 100
+
+R2(config)#interface GigabitEthernet0/0
+R2(config-if)#ip verify unicast source reachable-via any
+
+R1#ping 192.168.3.3 source lo1
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.3.3, timeout is 2 seconds:
+Packet sent with a source address of 192.168.1.1
+.....
+Success rate is 0 percent (0/5)
+R1#ping 192.168.3.3 source 10.1.12.1
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.3.3, timeout is 2 seconds:
+Packet sent with a source address of 10.1.12.1
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/2 ms
+
